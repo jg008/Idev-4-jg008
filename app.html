@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planear+ - Organizador de Tarefas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        .header {
+            background-color: rgba(30, 30, 30, 0.9);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #bb86fc;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-menu img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #bb86fc;
+            cursor: pointer;
+            margin-left: 15px;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .add-task {
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .add-task input, .add-task textarea, .add-task select {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #e0e0e0;
+        }
+
+        .add-task input {
+            flex: 1 1 300px;
+        }
+
+        .add-task textarea {
+            width: 100%;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .add-task select {
+            flex: 0 1 200px;
+        }
+
+        .add-task button {
+            padding: 12px 20px;
+            background-color: #bb86fc;
+            color: #121212;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .add-task button:hover {
+            background-color: #9a67ea;
+        }
+
+        .board {
+            display: flex;
+            gap: 1rem;
+            min-height: 70vh;
+        }
+
+        .column {
+            flex: 1;
+            background-color: rgba(30, 30, 30, 0.8);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .column-header {
+            text-align: center;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .todo {
+            background-color: #5c2b29;
+            border-left: 5px solid #ff8a80;
+        }
+
+        .progress {
+            background-color: #5c4b29;
+            border-left: 5px solid #ffe082;
+        }
+
+        .done {
+            background-color: #2c5c2b;
+            border-left: 5px solid #a5d6a7;
+        }
+
+        .task {
+            background-color: #333;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            cursor: move;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .task-date {
+            font-size: 0.8rem;
+            color: #bb86fc;
+        }
+
+        .task-priority {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+
+        .priority-high {
+            background-color: #d32f2f;
+            color: white;
+        }
+
+        .priority-medium {
+            background-color: #ffa000;
+            color: black;
+        }
+
+        .priority-low {
+            background-color: #388e3c;
+            color: white;
+        }
+
+        .task-content {
+            margin-bottom: 0.5rem;
+        }
+
+        .task-notes {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed #555;
+        }
+
+        .task-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+        }
+
+        .task-actions button {
+            background: none;
+            border: none;
+            color: #bb86fc;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .dragging {
+            opacity: 0.5;
+        }
+
+        .over {
+            background-color: rgba(187, 134, 252, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #333;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #bb86fc;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background-color: rgba(30, 30, 30, 0.8);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #bb86fc;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Planear+</div>
+        <div class="user-menu">
+            <img id="userAvatar" src="https://ui-avatars.com/api/?name=U&background=bb86fc&color=121212" alt="Usuário">
+            <span id="usernameDisplay">Usuário</span>
+            <button class="logout-btn" id="logoutBtn">Sair</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats" id="statsContainer">
+            <!-- Estatísticas serão preenchidas por JavaScript -->
+        </div>
+
+        <div class="add-task">
+            <input type="text" id="taskTitle" placeholder="Título da tarefa" required>
+            <textarea id="taskNotes" placeholder="Notas adicionais..."></textarea>
+            <select id="taskPriority">
+                <option value="low">Baixa Prioridade</option>
+                <option value="medium" selected>Média Prioridade</option>
+                <option value="high">Alta Prioridade</option>
+            </select>
+            <input type="date" id="taskDueDate">
+            <button id="add-task-btn">Adicionar Tarefa</button>
+        </div>
+
+        <div class="board">
+            <div class="column" id="todo-column">
+                <div class="column-header todo">A Fazer</div>
+                <div class="tasks" id="todo-tasks"></div>
+            </div>
+
+            <div class="column" id="progress-column">
+                <div class="column-header progress">Em Andamento</div>
+                <div class="tasks" id="progress-tasks"></div>
+            </div>
+
+            <div class="column" id="done-column">
+                <div class="column-header done">Concluído</div>
+                <div class="tasks" id="done-tasks"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para visualização detalhada -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTaskTitle">Título da Tarefa</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div id="modalTaskContent">
+                <!-- Conteúdo será preenchido por JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se o usuário está logado
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Configurar informações do usuário
+            document.getElementById('usernameDisplay').textContent = currentUser.username;
+            document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${currentUser.username.charAt(0)}&background=bb86fc&color=121212`;
+
+            // Botão de logout
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            });
+
+            // Configurar data padrão para daqui a 3 dias
+            const today = new Date();
+            const dueDate = new Date();
+            dueDate.setDate(today.getDate() + 3);
+            document.getElementById('taskDueDate').valueAsDate = dueDate;
+
+            // Carregar tarefas do usuário
+            loadUserTasks(currentUser.username);
+
+            // Atualizar estatísticas
+            updateStats();
+
+            // Adicionar nova tarefa
+            const addTaskBtn = document.getElementById('add-task-btn');
+            
+            addTaskBtn.addEventListener('click', function() {
+                addNewTask();
+            });
+
+            function addNewTask() {
+                const taskTitle = document.getElementById('taskTitle').value.trim();
+                const taskNotes = document.getElementById('taskNotes').value.trim();
+                const taskPriority = document.getElementById('taskPriority').value;
+                const taskDueDate = document.getElementById('taskDueDate').value;
+                
+                if (taskTitle) {
+                    const taskData = {
+                        title: taskTitle,
+                        notes: taskNotes,
+                        priority: taskPriority,
+                        dueDate: taskDueDate,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    const newTask = createTaskElement(taskData);
+                    document.getElementById('todo-tasks').appendChild(newTask);
+                    
+                    // Limpar campos
+                    document.getElementById('taskTitle').value = '';
+                    document.getElementById('taskNotes').value = '';
+                    document.getElementById('taskPriority').value = 'medium';
+                    
+                    // Salvar no localStorage
+                    saveTasks(currentUser.username);
+                    updateStats();
+                }
+            }
+
+            // Função para carregar tarefas do usuário
+            function loadUserTasks(username) {
+                const users = JSON.parse(localStorage.getItem('planearPlusUsers')) || [];
+                const user = users.find(u => u.username === username);
+                
+                if (user && user.tasks) {
+                    // Carregar tarefas "A Fazer"
+                    user.tasks.todo.forEach(taskData => {
+                        const task = createTaskElement(taskData);
+                        document.getElementById('todo-tasks').appendChild(task);
+                    });
+                    
+                    // Carregar tarefas "Em Andamento"
+                    user.tasks.progress.forEach(taskData => {
+                        const task = createTaskElement(taskData);
+                        document.getElementById('progress-tasks').appendChild(task);
+                    });
+                    
+                    // Carregar tarefas "Concluído"
+                    user.tasks.done.forEach(taskData => {
+                        const task = createTaskElement(taskData);
+                        document.getElementById('done-tasks').appendChild(task);
+                    });
+                }
+            }
+
+            // Função para atualizar estatísticas
+            function updateStats() {
+                const users = JSON.parse(localStorage.getItem('planearPlusUsers')) || [];
+                const user = users.find(u => u.username === currentUser.username);
+                
+                if (!user || !user.tasks) return;
+                
+                const statsContainer = document.getElementById('statsContainer');
+                const totalTasks = user.tasks.todo.length + user.tasks.progress.length + user.tasks.done.length;
+                const completedTasks = user.tasks.done.length;
+                const inProgressTasks = user.tasks.progress.length;
+                
+                // Calcular tarefas atrasadas
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                let overdueTasks = 0;
+                user.tasks.todo.concat(user.tasks.progress).forEach(task => {
+                    if (task.dueDate) {
+                        const dueDate = new Date(task.dueDate);
+                        if (dueDate < today) {
+                            overdueTasks++;
+                        }
+                    }
+                });
+                
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${totalTasks}</div>
+                        <div class="stat-label">Tarefas Totais</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${completedTasks}</div>
+                        <div class="stat-label">Concluídas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${inProgressTasks}</div>
+                        <div class="stat-label">Em Andamento</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${overdueTasks}</div>
+                        <div class="stat-label">Atrasadas</div>
+                    </div>
+                `;
+            }
+
+            // Função para criar elemento de tarefa
+            function createTaskElement(taskData) {
+                const task = document.createElement('div');
+                task.className = 'task';
+                task.draggable = true;
+                
+                // Formatar data
+                let dueDateText = '';
+                if (taskData.dueDate) {
+                    const dueDate = new Date(taskData.dueDate);
+                    dueDateText = dueDate.toLocaleDateString('pt-BR');
+                    
+                    // Verificar se a tarefa está atrasada (apenas para colunas "A Fazer" e "Em Andamento")
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    if (dueDate < today) {
+                        dueDateText += ' (Atrasada)';
+                    }
+                }
+                
+                // Determinar classe de prioridade
+                let priorityClass = '';
+                let priorityText = '';
+                switch(taskData.priority) {
+                    case 'high':
+                        priorityClass = 'priority-high';
+                        priorityText = 'Alta';
+                        break;
+                    case 'medium':
+                        priorityClass = 'priority-medium';
+                        priorityText = 'Média';
+                        break;
+                    case 'low':
+                        priorityClass = 'priority-low';
+                        priorityText = 'Baixa';
+                        break;
+                }
+                
+                task.innerHTML = `
+                    <div class="task-header">
+                        <div class="task-title">${taskData.title}</div>
+                        ${dueDateText ? `<div class="task-date">${dueDateText}</div>` : ''}
+                    </div>
+                    ${taskData.priority ? `<span class="task-priority ${priorityClass}">${priorityText}</span>` : ''}
+                    ${taskData.notes ? `<div class="task-notes">${taskData.notes}</div>` : ''}
+                    <div class="task-actions">
+                        <button class="view-btn">👁️ Detalhes</button>
+                        <button class="edit-btn">✏️ Editar</button>
+                        <button class="delete-btn">🗑️ Excluir</button>
+                    </div>
+                `;
+                
+                // Adicionar eventos de drag
+                addDragEvents(task);
+                
+                // Adicionar eventos dos botões
+                task.querySelector('.delete-btn').addEventListener('click', function() {
+                    if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+                        task.remove();
+                        saveTasks(currentUser.username);
+                        updateStats();
+                    }
+                });
+                
+                task.querySelector('.edit-btn').addEventListener('click', function() {
+                    editTask(task, taskData);
+                });
+                
+                task.querySelector('.view-btn').addEventListener('click', function() {
+                    viewTaskDetails(taskData);
+                });
+                
+                return task;
+            }
+
+            // Função para visualizar detalhes da tarefa
+            function viewTaskDetails(taskData) {
+                const modal = document.getElementById('taskModal');
+                const modalTitle = document.getElementById('modalTaskTitle');
+                const modalContent = document.getElementById('modalTaskContent');
+                
+                modalTitle.textContent = taskData.title;
+                
+                let contentHTML = `
+                    <p><strong>Status:</strong> ${getStatus(taskData)}</p>
+                `;
+                
+                if (taskData.dueDate) {
+                    const dueDate = new Date(taskData.dueDate);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    let dueDateText = dueDate.toLocaleDateString('pt-BR');
+                    if (dueDate < today && !taskData.completed) {
+                        dueDateText += ' <span style="color:#ff8a80;">(Atrasada)</span>';
+                    }
+                    
+                    contentHTML += `<p><strong>Data de Vencimento:</strong> ${dueDateText}</p>`;
+                }
+                
+                if (taskData.priority) {
+                    contentHTML += `<p><strong>Prioridade:</strong> ${getPriorityText(taskData.priority)}</p>`;
+                }
+                
+                if (taskData.createdAt) {
+                    const createdAt = new Date(taskData.createdAt);
+                    contentHTML += `<p><strong>Criada em:</strong> ${createdAt.toLocaleDateString('pt-BR')}</p>`;
+                }
+                
+                if (taskData.notes) {
+                    contentHTML += `
+                        <h3 style="margin-top:1rem;color:#bb86fc;">Notas</h3>
+                        <div style="background-color:#222;padding:1rem;border-radius:5px;">
+                            ${taskData.notes.replace(/\n/g, '<br>')}
+                        </div>
+                    `;
+                }
+                
+                modalContent.innerHTML = contentHTML;
+                modal.style.display = 'flex';
+            }
+
+            // Função para editar tarefa
+            function editTask(taskElement, taskData) {
+                const modal = document.getElementById('taskModal');
+                const modalTitle = document.getElementById('modalTaskTitle');
+                const modalContent = document.getElementById('modalTaskContent');
+                
+                modalTitle.textContent = `Editar: ${taskData.title}`;
+                
+                let dueDateValue = '';
+                if (taskData.dueDate) {
+                    const dueDate = new Date(taskData.dueDate);
+                    dueDateValue = dueDate.toISOString().split('T')[0];
+                }
+                
+                modalContent.innerHTML = `
+                    <form id="editTaskForm">
+                        <div style="margin-bottom:1rem;">
+                            <label style="display:block;margin-bottom:0.5rem;">Título</label>
+                            <input type="text" id="editTaskTitle" value="${taskData.title}" style="width:100%;padding:8px;background-color:#222;border:none;border-radius:5px;color:#e0e0e0;">
+                        </div>
+                        
+                        <div style="margin-bottom:1rem;">
+                            <label style="display:block;margin-bottom:0.5rem;">Data de Vencimento</label>
+                            <input type="date" id="editTaskDueDate" value="${dueDateValue}" style="width:100%;padding:8px;background-color:#222;border:none;border-radius:5px;color:#e0e0e0;">
+                        </div>
+                        
+                        <div style="margin-bottom:1rem;">
+                            <label style="display:block;margin-bottom:0.5rem;">Prioridade</label>
+                            <select id="editTaskPriority" style="width:100%;padding:8px;background-color:#222;border:none;border-radius:5px;color:#e0e0e0;">
+                                <option value="low" ${taskData.priority === 'low' ? 'selected' : ''}>Baixa</option>
+                                <option value="medium" ${(!taskData.priority || taskData.priority === 'medium') ? 'selected' : ''}>Média</option>
+                                <option value="high" ${taskData.priority === 'high' ? 'selected' : ''}>Alta</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom:1rem;">
+                            <label style="display:block;margin-bottom:0.5rem;">Notas</label>
+                            <textarea id="editTaskNotes" style="width:100%;min-height:100px;padding:8px;background-color:#222;border:none;border-radius:5px;color:#e0e0e0;">${taskData.notes || ''}</textarea>
+                        </div>
+                        
+                        <button type="submit" style="padding:10px 20px;background-color:#bb86fc;color:#121212;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">Salvar Alterações</button>
+                    </form>
+                `;
+                
+                document.getElementById('editTaskForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Atualizar dados da tarefa
+                    taskData.title = document.getElementById('editTaskTitle').value.trim();
+                    taskData.dueDate = document.getElementById('editTaskDueDate').value;
+                    taskData.priority = document.getElementById('editTaskPriority').value;
+                    taskData.notes = document.getElementById('editTaskNotes').value.trim();
+                    
+                    // Atualizar elemento na tela
+                    const newTaskElement = createTaskElement(taskData);
+                    taskElement.replaceWith(newTaskElement);
+                    
+                    // Salvar no localStorage
+                    saveTasks(currentUser.username);
+                    updateStats();
+                    
+                    // Fechar modal
+                    modal.style.display = 'none';
+                });
+                
+                modal.style.display = 'flex';
+            }
+
+            // Funções auxiliares
+            function getStatus(taskData) {
+                const users = JSON.parse(localStorage.getItem('planearPlusUsers')) || [];
+                const user = users.find(u => u.username === currentUser.username);
+                
+                if (user.tasks.done.some(t => t.createdAt === taskData.createdAt)) {
+                    return 'Concluído';
+                } else if (user.tasks.progress.some(t => t.createdAt === taskData.createdAt)) {
+                    return 'Em Andamento';
+                } else {
+                    return 'A Fazer';
+                }
+            }
+
+            function getPriorityText(priority) {
+                switch(priority) {
+                    case 'high': return 'Alta Prioridade';
+                    case 'medium': return 'Média Prioridade';
+                    case 'low': return 'Baixa Prioridade';
+                    default: return 'Não definida';
+                }
+            }
+
+            // Função para salvar tarefas no localStorage
+            function saveTasks(username) {
+                const users = JSON.parse(localStorage.getItem('planearPlusUsers')) || [];
+                const userIndex = users.findIndex(u => u.username === username);
+                
+                if (userIndex !== -1) {
+                    // Coletar dados de tarefas de cada coluna
+                    users[userIndex].tasks = {
+                        todo: Array.from(document.getElementById('todo-tasks').children).map(task => {
+                            return {
+                                title: task.querySelector('.task-title').textContent,
+                                dueDate: task.querySelector('.task-date')?.textContent.replace(' (Atrasada)', ''),
+                                priority: task.querySelector('.task-priority')?.classList.contains('priority-high') ? 'high' : 
+                                          task.querySelector('.task-priority')?.classList.contains('priority-medium') ? 'medium' : 'low',
+                                notes: task.querySelector('.task-notes')?.textContent,
+                                createdAt: task.dataset.createdAt
+                            };
+                        }),
+                        progress: Array.from(document.getElementById('progress-tasks').children).map(task => {
+                            return {
+                                title: task.querySelector('.task-title').textContent,
+                                dueDate: task.querySelector('.task-date')?.textContent.replace(' (Atrasada)', ''),
+                                priority: task.querySelector('.task-priority')?.classList.contains('priority-high') ? 'high' : 
+                                          task.querySelector('.task-priority')?.classList.contains('priority-medium') ? 'medium' : 'low',
+                                notes: task.querySelector('.task-notes')?.textContent,
+                                createdAt: task.dataset.createdAt
+                            };
+                        }),
+                        done: Array.from(document.getElementById('done-tasks').children).map(task => {
+                            return {
+                                title: task.querySelector('.task-title').textContent,
+                                dueDate: task.querySelector('.task-date')?.textContent.replace(' (Atrasada)', ''),
+                                priority: task.querySelector('.task-priority')?.classList.contains('priority-high') ? 'high' : 
+                                          task.querySelector('.task-priority')?.classList.contains('priority-medium') ? 'medium' : 'low',
+                                notes: task.querySelector('.task-notes')?.textContent,
+                                createdAt: task.dataset.createdAt,
+                                completed: true
+                            };
+                        })
+                    };
+                    
+                    localStorage.setItem('planearPlusUsers', JSON.stringify(users));
+                    
+                    // Atualizar currentUser também
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                    if (currentUser && currentUser.username === username) {
+                        currentUser.tasks = users[userIndex].tasks;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    }
+                }
+            }
+
+            // Drag and Drop functionality
+            function addDragEvents(item) {
+                item.addEventListener('dragstart', dragStart);
+                item.addEventListener('dragend', dragEnd);
+            }
+
+            function dragStart() {
+                this.classList.add('dragging');
+                setTimeout(() => this.style.display = 'none', 0);
+            }
+
+            function dragEnd() {
+                this.classList.remove('dragging');
+                this.style.display = 'block';
+            }
+
+            // Adicionar eventos às colunas
+            const columns = document.querySelectorAll('.column');
+            
+            columns.forEach(column => {
+                column.addEventListener('dragover', dragOver);
+                column.addEventListener('dragenter', dragEnter);
+                column.addEventListener('dragleave', dragLeave);
+                column.addEventListener('drop', drop);
+            });
+
+            function dragOver(e) {
+                e.preventDefault();
+            }
+
+            function dragEnter(e) {
+                e.preventDefault();
+                this.classList.add('over');
+            }
+
+            function dragLeave() {
+                this.classList.remove('over');
+            }
+
+            function drop() {
+                this.classList.remove('over');
+                const draggingItem = document.querySelector('.dragging');
+                this.querySelector('.tasks').appendChild(draggingItem);
+                saveTasks(currentUser.username);
+                updateStats();
+            }
+
+            // Fechar modal
+            document.getElementById('closeModal').addEventListener('click', function() {
+                document.getElementById('taskModal').style.display = 'none';
+            });
+
+            // Fechar modal ao clicar fora
+            window.addEventListener('click', function(e) {
+                if (e.target === document.getElementById('taskModal')) {
+                    document.getElementById('taskModal').style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
